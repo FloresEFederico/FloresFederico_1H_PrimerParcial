@@ -220,16 +220,7 @@ int publicacion_altaArray(Publicacion* pArray,int limite,Cliente* pArrayCliente,
 	return retorno;
 }
 
-/**
- * \brief: genera un valor de ID para array de Publicacions.Id
- * \return id
- */
-static int generadorIdPublicacion(void)
-{
-	static int id = 999;
-	id++;
-	return id;
-}
+
 
 /**
  * brief: busca un Id existente en el array de Publicaciones y devuelve su indice si se encontro
@@ -439,6 +430,41 @@ int publicacion_mostrarPorRubro(Publicacion* pArray,int limite,Cliente* pArrayCl
 }
 
 /**
+ * \brief: lista los Clientes con Publicaciones a partir del estado, mostrando sus campos
+ * \param: pArray: Array de Publicacion
+ * \param limite: limite del array de Publicaciones
+ * \param pArrayCliente: Array de Cliente
+ * \param limiteCliente: limite del array de Clientes
+ * \param estado: ACTIVO o PAUSADO.
+ * \nreturn Retorna 0 (EXITO) y -1 (ERROR)
+ */
+int publicacion_mostrarPorEstado(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente,int estado)
+{
+	int retorno = -1;
+	int i;
+	int buscarIndiceCliente;
+	if(pArray != NULL && limite > 0 && pArrayCliente != NULL && limiteCliente > 0)
+	{
+		for(i=0;i<limite;i++)
+		{
+			if(pArray[i].isEmpty == FALSE && pArray[i].estado == estado)
+			{
+				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,pArray[i].idCliente);
+				if(buscarIndiceCliente != -1)
+				{
+					publicacion_imprimir(&pArray[i]);
+					printf("APELLIDO,NOMBRE: %s,%s   - CUIT: %s\n",pArrayCliente[buscarIndiceCliente].apellido,pArrayCliente[buscarIndiceCliente].nombre,pArrayCliente[buscarIndiceCliente].cuit);
+					retorno = 0;
+				}
+			}
+		}
+	}
+	return retorno;
+}
+
+
+
+/**
  * brief: busca un Id existente en el array de Publicaciones teniendo en cuenta su estado si se encuentra activo o pausado y devuelve su indice si se encontro
  * \param: pArray: Array de Publicaciones a ser actualizado
  * \param limite: limite del array de Publicaciones
@@ -487,4 +513,15 @@ int publicacion_buscarRubro(Publicacion* pArray,int limite,int rubroABuscar)
 		}
 	}
 	return indiceEncontrado;
+}
+
+/**
+ * \brief: genera un valor de ID para array de Publicacions.Id
+ * \return id
+ */
+static int generadorIdPublicacion(void)
+{
+	static int id = 999;
+	id++;
+	return id;
 }

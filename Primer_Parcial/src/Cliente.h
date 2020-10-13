@@ -16,6 +16,8 @@ typedef struct
 	int isEmpty;
 }Cliente;
 
+
+
 int cliente_inicializarArray(Cliente* pArray,int limite);
 int cliente_imprimir(Cliente* auxCliente);
 int cliente_imprimirArray(Cliente* pArray,int limite);

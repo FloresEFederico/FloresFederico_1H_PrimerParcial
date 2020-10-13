@@ -14,9 +14,6 @@
 #include "Cliente.h"
 #include "Publicacion.h"
 #include "Informes.h"
-/**
- * FALTA MODIFICAR UN POCO LOS INFORMES 1 Y 3.
- */
 
 int main(void) {
 	setbuf(stdout,NULL);
@@ -138,5 +135,6 @@ int main(void) {
 		}
 	}while(opcion != 9);
 	printf("\nHasta luego!\n");
+
 	return EXIT_SUCCESS;
 }

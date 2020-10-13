@@ -24,6 +24,9 @@ typedef struct
 	int isEmpty;
 }Publicacion;
 
+
+
+
 int publicacion_inicializarArray(Publicacion* pArray,int limite);
 int publicacion_imprimir(Publicacion* auxPublicacion);
 int publicacion_imprimirArray(Publicacion* pArray,int limite);
@@ -35,6 +38,7 @@ int publicacion_pausarPublicacion(Publicacion* pArray,int limite,Cliente* pArray
 int publicacion_reanudarPublicacion(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente);
 int publicacion_buscarId(Publicacion* pArray,int limite,int idABuscar);
 int publicacion_buscarRubro(Publicacion* pArray,int limite,int rubroABuscar);
+int publicacion_mostrarPorEstado(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente,int estado);
 int publicacion_buscarIdyEstado(Publicacion* pArray,int limite,int idABuscar,int estado);
 int publicacion_mostrarClientesConPublicacion(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente,int idPublicacion);
 

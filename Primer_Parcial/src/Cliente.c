@@ -132,16 +132,7 @@ int cliente_altaArray(Cliente* pArray,int limite)
 	}
 	return retorno;
 }
-/**
- * \brief: genera un valor de ID para array de Clientes.Id
- * \return id
- */
-static int generadorIdCliente(void)
-{
-	static int id = 99;
-	id++;
-	return id;
-}
+
 
 /**
  * brief: busca un Id existente en el array de Clientes y devuelve su indice si se encontro
@@ -281,3 +272,13 @@ int cliente_bajaArray(Cliente* pArray,int limite)
 	return retorno;
 }
 
+/**
+ * \brief: genera un valor de ID para array de Clientes.Id
+ * \return id
+ */
+static int generadorIdCliente(void)
+{
+	static int id = 99;
+	id++;
+	return id;
+}
