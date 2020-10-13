@@ -4,8 +4,9 @@
 #include "utn.h"
 #include "Cliente.h"
 
-static int generadorIdCliente(void); //utilizado en la funcion cliente_altaArray
 
+static int generadorIdCliente(void); //utilizado en la funcion cliente_altaArray
+static int cliente_bajaDePublicacionesDelCliente(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,int limitePublicacion,int indiceDeCliente); // utilizada en la funcion cliente_bajaArray.
 /**
  * brief: Imprime los datos de un Cliente
  * \param: auxProducto: Cliente a ser imprimido
@@ -236,17 +237,20 @@ int cliente_modificarArray(Cliente* pArray,int limite)
 }
 
 /**
- * brief: Da de baja un Cliente del Array.
- * \param: pArray: Array de Clientes a ser actualizado
+ * brief: Da de baja un Cliente del Array mas todas sus publicaciones.
+ * \param: pArray: Array de Clientes
  * \param limite: limite del array de Cliente
+ * \param pArrayPublicaciones: Array de Publicaciones
+ * \param limitePublicacion: limite del array de Publicacion
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int cliente_bajaArray(Cliente* pArray,int limite)
+int cliente_bajaArray(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,int limitePublicacion)
 {
 	int retorno = -1;
 	int idBaja;
 	int indiceADarDeBaja;
 	char confirmarBaja;
+
 	if(pArray != NULL && limite > 0 && cliente_imprimirArray(pArray,limite) == 0)
 		{
 			utn_getNumero(&idBaja,"Ingrese el ID del Cliente que desea dar de baja(100-999): ","\nID invalido!\n",100,999,3);
@@ -256,7 +260,8 @@ int cliente_bajaArray(Cliente* pArray,int limite)
 				if(confirmarBaja == 's')
 				{
 					pArray[indiceADarDeBaja].isEmpty = TRUE;
-					printf("\nSe ha dado de baja al Cliente exitosamente\n");
+					cliente_bajaDePublicacionesDelCliente(pArray,limite,pArrayPublicacion,limitePublicacion,indiceADarDeBaja);
+					printf("\nSe ha dado de baja al Cliente con todas sus publicaciones exitosamente\n");
 				}else
 				{
 					printf("\nSe ha cancelado la baja!\n");
@@ -269,6 +274,30 @@ int cliente_bajaArray(Cliente* pArray,int limite)
 				printf("\nNo se encontro a una Cliente con ese ID.\n");
 			}
 		}
+	return retorno;
+}
+
+/**
+ * brief: Da de baja Las Publicaciones en un Cliente determinado.
+ * \param: pArray: Array de Clientes
+ * \param limite: limite del array de Cliente
+ * \param pArrayPublicaciones: Array de Publicaciones
+ * \param limitePublicacion: limite del array de Publicacion
+ * \param indiceDeCliente: indice del cliente al cual se le dara de baja las publicaciones.
+ * \return Retorna 0 (EXITO) y -1(ERROR)
+ */
+static int cliente_bajaDePublicacionesDelCliente(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,int limitePublicacion,int indiceDeCliente)
+{
+	int retorno= -1;
+	int i;
+	for(i=0;i<limitePublicacion;i++)
+	{
+		if(pArray[indiceDeCliente].id == pArrayPublicacion[i].idCliente)
+		{
+			pArrayPublicacion[i].isEmpty = TRUE;
+		}
+		retorno = 0;
+	}
 	return retorno;
 }
 

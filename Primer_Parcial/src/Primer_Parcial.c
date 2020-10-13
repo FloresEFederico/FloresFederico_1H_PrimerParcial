@@ -61,7 +61,7 @@ int main(void) {
 				getchar();
 				break;
 			case 3:
-				if(!cliente_bajaArray(listaDeClientes,QTY_CLIENTES))
+				if(!cliente_bajaArray(listaDeClientes,QTY_CLIENTES,listaDePublicaciones,QTY_PUBLICACIONES))
 				{
 					printf("\n-----------------------------\n");
 				}else
