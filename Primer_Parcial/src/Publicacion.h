@@ -1,4 +1,3 @@
-#include "Cliente.h"
 #ifndef CONTRATACION_H_
 #define CONTRATACION_H_
 
@@ -25,6 +24,7 @@ typedef struct
 }Publicacion;
 
 
+#include "Cliente.h"
 
 
 int publicacion_inicializarArray(Publicacion* pArray,int limite);

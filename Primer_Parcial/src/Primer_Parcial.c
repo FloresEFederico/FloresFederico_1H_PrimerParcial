@@ -15,6 +15,7 @@
 #include "Publicacion.h"
 #include "Informes.h"
 
+
 int main(void) {
 	setbuf(stdout,NULL);
 	Cliente listaDeClientes[QTY_CLIENTES];

@@ -251,7 +251,7 @@ int cliente_bajaArray(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,
 	int indiceADarDeBaja;
 	char confirmarBaja;
 
-	if(pArray != NULL && limite > 0 && cliente_imprimirArray(pArray,limite) == 0)
+	if(pArray != NULL && limite > 0 && !cliente_imprimirArray(pArray,limite))
 		{
 			utn_getNumero(&idBaja,"Ingrese el ID del Cliente que desea dar de baja(100-999): ","\nID invalido!\n",100,999,3);
 			indiceADarDeBaja = cliente_buscarId(pArray,limite,idBaja);
@@ -259,8 +259,8 @@ int cliente_bajaArray(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,
 			{
 				if(confirmarBaja == 's')
 				{
-					pArray[indiceADarDeBaja].isEmpty = TRUE;
 					cliente_bajaDePublicacionesDelCliente(pArray,limite,pArrayPublicacion,limitePublicacion,indiceADarDeBaja);
+					pArray[indiceADarDeBaja].isEmpty = TRUE;
 					printf("\nSe ha dado de baja al Cliente con todas sus publicaciones exitosamente\n");
 				}else
 				{
