@@ -13,6 +13,9 @@ static int contadorDeAvisosPausados(Publicacion* pArray,int limite,int* pArrayId
 static int calcularRubroConMasAvisos(Publicacion* pArray,int limite,int* pArrayRubros,int indiceRubros,int* cantMaxAvisos);
 static int calcularClienteConMasAvisos(Publicacion* pArray,int limite,int* pArrayIdClientes,int indiceIdClientes,int* cantMaxAvisos);
 
+//--SEGUNDA PARTE DEL PARCIAL--
+static int calcularClienteConMasAvisosPorEstado(Publicacion* pArray,int limite,int* pArrayIdClientes,int indiceIdClientes,int estado,int* cantMaxAvisos);
+
 /**
  * \brief: Informa clientes con mayor cantidad de avisos
  * \param: pArray: Array de Publicacion
@@ -152,7 +155,9 @@ int informar_subMenu(Publicacion* pArray,int limite,Cliente* pArrayCliente,int l
 										 "1-Cliente con mas avisos.\n"
 										 "2-Cantidad de avisos pausados.\n"
 										 "3-Rubro con mas avisos.\n"
-										 "4-salir.\nElija opcion(1-4): ","\nOpcion invalida!\n",1,4,3))
+										 "4-Cliente con mas avisos activos\n"
+										 "5-Cliente con mas avisos pausados\n"
+										 "6-salir.\nElija opcion(1-4): ","\nOpcion invalida!\n",1,6,3))
 
 		{
 			switch(opcionSubMenu)
@@ -177,6 +182,24 @@ int informar_subMenu(Publicacion* pArray,int limite,Cliente* pArrayCliente,int l
 				break;
 			case 3:
 				if(!informar_RubroConMasAvisos(pArray,limite,pArrayCliente,limiteCliente))
+				{
+					printf("\nVolviendo al menu principal.");
+				}else
+				{
+					printf("\nHubo un error en el Informe.\n");
+				}
+				break;
+			case 4:
+				if(!informar_ClienteConMasAvisosActivos(pArray,limite,pArrayCliente,limiteCliente))
+				{
+					printf("\nVolviendo al menu principal.");
+				}else
+				{
+					printf("\nHubo un error en el Informe.\n");
+				}
+				break;
+			case 5:
+				if(!informar_ClienteConMasAvisosPausados(pArray,limite,pArrayCliente,limiteCliente))
 				{
 					printf("\nVolviendo al menu principal.");
 				}else
@@ -409,3 +432,136 @@ static int calcularRubroConMasAvisos(Publicacion* pArray,int limite,int* pArrayR
 	}
 	return retorno;
 }
+
+
+//----SEGUNDA PARTE DEL PARCIAL----
+
+/**
+ * \brief: Informa clientes con mayor cantidad de avisos Activos
+ * \param: pArray: Array de Publicacion
+ * \param limite: limite del array de Publicaciones
+ * \param pArrayCliente: Array de Cliente
+ * \param limiteCliente: limite del array de Clientes
+ * \nreturn Retorna 0 (EXITO) y -1 (ERROR)
+ */
+int informar_ClienteConMasAvisosActivos(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente)
+{
+	int retorno = -1;
+	int listaDeIdClientes[CANTIDAD_IDCLIENTES];
+	int indiceDeIdClientes = 0;
+	int cantidadMaximaDeAvisosActivos;
+	int idClienteConMasAvisosActivos;
+	int buscarIndice;
+	if(pArray != NULL && limite > 0 && pArrayCliente != NULL && limiteCliente > 0 &&
+	   !cargarIdsClientes(pArray,limite,listaDeIdClientes,&indiceDeIdClientes))
+	{
+
+		printf("\nPUBLICACIONES ACTIVAS: \n");
+		publicacion_mostrarPorEstado(pArray,limite,pArrayCliente,limiteCliente,ACTIVO);
+		idClienteConMasAvisosActivos = calcularClienteConMasAvisosPorEstado(pArray,limite,listaDeIdClientes,indiceDeIdClientes,ACTIVO,&cantidadMaximaDeAvisosActivos);
+		buscarIndice = cliente_buscarId(pArrayCliente,limiteCliente,idClienteConMasAvisosActivos);
+		if(idClienteConMasAvisosActivos != -1 && buscarIndice != -1)
+		{
+			printf("\nEl Cliente con mas avisos Activos es:\n"
+					"ID: %d\n"
+					"Apellido,Nombre: %s,%s\n"
+					"Cuit: %s\n"
+					"Cantidad de avisos Pausados: %d\n",pArrayCliente[buscarIndice].id,pArrayCliente[buscarIndice].apellido,pArrayCliente[buscarIndice].nombre,pArrayCliente[buscarIndice].cuit,cantidadMaximaDeAvisosActivos);
+		}else
+		{
+			printf("\nNo se ha registrado ninguna Publicacion.\n");
+		}
+		retorno = 0;
+	}
+	return retorno;
+}
+
+/**
+ * \brief: Informa clientes con mayor cantidad de avisos Pausados
+ * \param: pArray: Array de Publicacion
+ * \param limite: limite del array de Publicaciones
+ * \param pArrayCliente: Array de Cliente
+ * \param limiteCliente: limite del array de Clientes
+ * \nreturn Retorna 0 (EXITO) y -1 (ERROR)
+ */
+int informar_ClienteConMasAvisosPausados(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente)
+{
+	int retorno = -1;
+	int listaDeIdClientes[CANTIDAD_IDCLIENTES];
+	int indiceDeIdClientes = 0;
+	int cantidadMaximaDeAvisosPausados;
+	int idClienteConMasAvisosPausados;
+	int buscarIndice;
+	if(pArray != NULL && limite > 0 && pArrayCliente != NULL && limiteCliente > 0 &&
+	   !cargarIdsClientes(pArray,limite,listaDeIdClientes,&indiceDeIdClientes))
+	{
+
+		printf("\nPUBLICACIONES PAUSADAS: \n");
+		publicacion_mostrarPorEstado(pArray,limite,pArrayCliente,limiteCliente,PAUSADO);
+		idClienteConMasAvisosPausados = calcularClienteConMasAvisosPorEstado(pArray,limite,listaDeIdClientes,indiceDeIdClientes,PAUSADO,&cantidadMaximaDeAvisosPausados);
+		buscarIndice = cliente_buscarId(pArrayCliente,limiteCliente,idClienteConMasAvisosPausados);
+		if(idClienteConMasAvisosPausados != -1 && buscarIndice != -1)
+		{
+			printf("\nEl Cliente con mas avisos Pausados es:\n"
+					"ID: %d\n"
+					"Apellido,Nombre: %s,%s\n"
+					"Cuit: %s\n"
+					"Cantidad de avisos Pausados: %d\n",pArrayCliente[buscarIndice].id,pArrayCliente[buscarIndice].apellido,pArrayCliente[buscarIndice].nombre,pArrayCliente[buscarIndice].cuit,cantidadMaximaDeAvisosPausados);
+		}else
+		{
+			printf("\nNo se ha registrado ninguna Publicacion.\n");
+		}
+		retorno = 0;
+	}
+	return retorno;
+}
+
+
+/**
+ * \brief: calcula el Cliente con mas avisos segun su estado y retorna por referencia la cantidad mayor de avisos y por valor el Id del Cliente.
+ * \param: pArray: Array de Publicacion
+ * \param limite: limite del array de Publicaciones
+ * \param: pArrayIdClientes: Array de IdClientes.
+ * \param: indiceIdClientes: limite del array de IdClientes.
+ * \param estado: estado de publicacion: ACTIVO(1) / PAUSADO(0)
+ * \param: *cantMaxAvisos: puntero donde se guarda la cantidad maxima de avisos
+ * \nreturn Retorna auxIdCliente si salio bien o -1 (ERROR).
+ */
+static int calcularClienteConMasAvisosPorEstado(Publicacion* pArray,int limite,int* pArrayIdClientes,int indiceIdClientes,int estado,int* cantMaxAvisos)
+{
+	int retorno = -1;
+	int i;
+	int j;
+	int contadorDeAvisos;
+	int auxMaxAvisos;
+	int flagMaximo = 0;
+	int auxIdCliente;
+	if(pArray != NULL && limite > 0 && pArrayIdClientes != NULL && indiceIdClientes > 0)
+	{
+		for(i=0;i<indiceIdClientes;i++)
+		{
+			contadorDeAvisos = 0;
+			for(j=0;j<limite;j++)
+			{
+				if(pArray[j].estado == estado && pArrayIdClientes[i] == pArray[j].idCliente)
+				{
+					contadorDeAvisos++;
+				}
+			}
+			if(i == 0 || auxMaxAvisos < contadorDeAvisos)
+			{
+				auxMaxAvisos = contadorDeAvisos;
+				auxIdCliente = pArrayIdClientes[i];
+				flagMaximo = 1;
+			}
+		}
+		if(flagMaximo)
+		{
+			*cantMaxAvisos = auxMaxAvisos;
+			retorno = auxIdCliente;
+		}
+	}
+	return retorno;
+}
+
+

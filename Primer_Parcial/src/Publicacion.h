@@ -2,7 +2,7 @@
 #define CONTRATACION_H_
 
 #define TXTARCHIVO_LEN 64
-#define QTY_PUBLICACIONES 1000
+#define QTY_PUBLICACIONES 7
 #define TRUE 1
 #define FALSE 0
 #define MIN_IDCLIENTE 100
@@ -25,6 +25,7 @@ typedef struct
 
 
 #include "Cliente.h"
+
 
 
 int publicacion_inicializarArray(Publicacion* pArray,int limite);

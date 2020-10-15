@@ -4,7 +4,7 @@
 
 #define NOMBRE_LEN 51
 #define CUIT_LEN 21
-#define QTY_CLIENTES 100
+#define QTY_CLIENTES 3
 #define TRUE 1
 #define FALSE 0
 
@@ -18,6 +18,9 @@ typedef struct
 }Cliente;
 
 #include "Publicacion.h"
+
+
+
 
 int cliente_inicializarArray(Cliente* pArray,int limite);
 int cliente_imprimir(Cliente* auxCliente);
