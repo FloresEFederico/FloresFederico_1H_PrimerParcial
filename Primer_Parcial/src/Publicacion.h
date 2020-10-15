@@ -2,7 +2,7 @@
 #define CONTRATACION_H_
 
 #define TXTARCHIVO_LEN 64
-#define QTY_PUBLICACIONES 7
+#define QTY_PUBLICACIONES 1000
 #define TRUE 1
 #define FALSE 0
 #define MIN_IDCLIENTE 100

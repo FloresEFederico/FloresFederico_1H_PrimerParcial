@@ -4,7 +4,7 @@
 
 #define NOMBRE_LEN 51
 #define CUIT_LEN 21
-#define QTY_CLIENTES 3
+#define QTY_CLIENTES 100
 #define TRUE 1
 #define FALSE 0
 
