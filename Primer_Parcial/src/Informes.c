@@ -466,7 +466,7 @@ int informar_ClienteConMasAvisosActivos(Publicacion* pArray,int limite,Cliente* 
 					"ID: %d\n"
 					"Apellido,Nombre: %s,%s\n"
 					"Cuit: %s\n"
-					"Cantidad de avisos Pausados: %d\n",pArrayCliente[buscarIndice].id,pArrayCliente[buscarIndice].apellido,pArrayCliente[buscarIndice].nombre,pArrayCliente[buscarIndice].cuit,cantidadMaximaDeAvisosActivos);
+					"Cantidad de avisos Activos: %d\n",pArrayCliente[buscarIndice].id,pArrayCliente[buscarIndice].apellido,pArrayCliente[buscarIndice].nombre,pArrayCliente[buscarIndice].cuit,cantidadMaximaDeAvisosActivos);
 		}else
 		{
 			printf("\nNo se ha registrado ninguna Publicacion.\n");
