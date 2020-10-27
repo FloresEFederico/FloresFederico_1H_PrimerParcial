@@ -22,7 +22,10 @@ static int toNombre(char text[],int len); //utilizada en getNombre
 static int getDni(char* pResultado,int longitud); //utilizada en utn_getDni
 static int esDni(char* pResultado,int limite); //utilizada en getDni
 static int getDireccion(char* pResultado,int longitud); // utilizada en utn_getDireccion
+static int getPassword(char* pResultado,int longitud); // utilizada en utn_getPassword
 static int esAlfaNumerica(char* pResultado); //utilizada en getDireccion
+static int esTexto(char* pResultado); // utilizada en getDireccion
+
 /*
  * utn_getNumero : pide al usuario un numero entero
  * pResultado : Direccion de memoria de la variable donde escribe el valor ingresado por el usuario
@@ -400,6 +403,16 @@ int utn_getNombre(char* pResultado,int longitud,char* mensaje,char* mensajeError
 	return retorno;
 }
 
+/*
+ * utn_getDni: pide al usuario un Dni (tambien puede ser Cuit)
+ * pResultado : Direccion de memoria de la variable donde escribe el valor ingresado por el usuario
+ * longitud: tamaño total del array de caracteres
+ * mensaje : El mensaje que imprime para pedir un valor.
+ * mensajeError: El mensaje que imprime si el rango no es valido.
+ * Reintentos: cantidad de veces que tiene el usuario para ingresar un valor valido
+ * Retorno: devuelve un 0 si esta todoOK. Devuelve -1 si hubo un error.
+ *
+ */
 int utn_getDni(char* pResultado,int longitud,char* mensaje,char* mensajeError,int reintentos)
 {
 	int retorno = -1;
@@ -420,6 +433,49 @@ int utn_getDni(char* pResultado,int longitud,char* mensaje,char* mensajeError,in
 	}
 	return retorno;
 }
+
+/*
+ * utn_getNombre: pide al usuario una contraseña
+ * pResultado : Direccion de memoria de la variable donde escribe el valor ingresado por el usuario
+ * longitud: tamaño total del array de caracteres
+ * mensaje : El mensaje que imprime para pedir un valor.
+ * mensajeError: El mensaje que imprime si el rango no es valido.
+ * Reintentos: cantidad de veces que tiene el usuario para ingresar un valor valido
+ * Retorno: devuelve un 0 si esta todoOK. Devuelve -1 si hubo un error.
+ *
+ */
+int utn_getPassword(char* pResultado,int longitud,char* mensaje,char* mensajeError,int reintentos)
+{
+	int retorno = -1;
+	char bufferChar[45];
+	if(pResultado != NULL && mensaje != NULL && mensajeError != NULL && reintentos > 0){
+		do{
+			printf("%s",mensaje);
+			if(getPassword(bufferChar,sizeof(bufferChar)) &&
+				strlen(bufferChar) < longitud){
+				strncpy(pResultado,bufferChar,longitud-1);
+				retorno = 0;
+				break;
+			}else{
+				printf("%s",mensajeError);
+				reintentos--;
+			}
+		}while(reintentos >= 0);
+	}
+	return retorno;
+}
+
+
+/*
+ * utn_getNombre: pide al usuario una direccion
+ * pResultado : Direccion de memoria de la variable donde escribe el valor ingresado por el usuario
+ * longitud: tamaño total del array de caracteres
+ * mensaje : El mensaje que imprime para pedir un valor.
+ * mensajeError: El mensaje que imprime si el rango no es valido.
+ * Reintentos: cantidad de veces que tiene el usuario para ingresar un valor valido
+ * Retorno: devuelve un 0 si esta todoOK. Devuelve -1 si hubo un error.
+ *
+ */
 int utn_getDireccion(char* pResultado,int longitud,char* mensaje,char* mensajeError,int reintentos)
 {
 	int retorno = -1;
@@ -491,6 +547,29 @@ static int getDni(char* pResultado,int longitud)
 }
 
 /*
+ * getPassWord: pide un texto al usuario, lo almacena como cadena, valida y lo devuelve
+ * presultado: puntero a  array de caracter
+ * longitud: tamaño del array
+ * Retorno: devuelve un 1 si esta todoOK. Devuelve 0 si hubo un error.
+ *
+ */
+static int getPassword(char* pResultado,int longitud)
+{
+	int retorno = 0;
+	char buffAux[1000];
+	if(pResultado != NULL && longitud > 0){
+		fflush(stdin);
+		if(!myGets(buffAux,sizeof(buffAux)) &&
+			esAlfaNumerica(buffAux))
+		{
+			strncpy(pResultado,buffAux,longitud);
+			retorno = 1;
+		}
+	}
+	return retorno;
+}
+
+/*
  * getDireccion: pide un texto al usuario, lo almacena como cadena, valida y lo devuelve
  * presultado: puntero a  array de caracter
  * longitud: tamaño del array
@@ -504,7 +583,7 @@ static int getDireccion(char* pResultado,int longitud)
 	if(pResultado != NULL && longitud > 0){
 		fflush(stdin);
 		if(!myGets(buffAux,sizeof(buffAux)) &&
-			esAlfaNumerica(buffAux))
+			esTexto(buffAux))
 		{
 			strncpy(pResultado,buffAux,longitud);
 			retorno = 1;
@@ -547,7 +626,7 @@ static int esNombre(char* pResultado,int limite)
  */
 static int esDni(char* pResultado,int limite)
 {
-	int respuesta = 1; // TODO OK
+	int respuesta = 1;
 	int i;
 	int contadorDeGuion = 0;
 	int longitudDeDni = strlen(pResultado);
@@ -603,13 +682,39 @@ static int toNombre(char text[],int len)
  * Retorno: devuelve un 1 si esta todoOK. Devuelve 0 si hubo un error.
  *
  */
-static int esAlfaNumerica(char* pResultado){
+static int esAlfaNumerica(char* pResultado)
+{
+	int retorno = 1;
+	int i;
+	if(pResultado != NULL){
+		for(i=0;pResultado[i] != '\0';i++){
+			if((pResultado[i] < 'a' || pResultado[i] > 'z') &&
+			   (pResultado[i] < 'A' || pResultado[i] > 'Z') &&
+			   (pResultado[i] < '0' || pResultado[i] > '9')){
+				retorno = 0;
+				break;
+			}
+		}
+	}
+	return retorno;
+}
+
+/*
+ * esTexto: Recibe una cadena de caracteres y devuelve 1 en caso de que el texto este compuesto solo por letras y/o espacio y/o numeros y/o signos de exclamacion/interrogacion
+ * pResultado: cadena de caracteres
+ * Retorno: devuelve un 1 si esta todoOK. Devuelve 0 si hubo un error.
+ *
+ */
+static int esTexto(char* pResultado)
+{
 	int retorno = 1;
 	int i;
 	if(pResultado != NULL){
 		for(i=0;pResultado[i] != '\0';i++){
 			if((pResultado[i] != ' ') &&
 			   (pResultado[i] != '.') &&
+			   (pResultado[i] != '¡') && (pResultado[i] != '!') &&
+			   (pResultado[i] != '¿') && (pResultado[i] != '?') &&
 			   (pResultado[i] < 'a' || pResultado[i] > 'z') &&
 			   (pResultado[i] < 'A' || pResultado[i] > 'Z') &&
 			   (pResultado[i] < '0' || pResultado[i] > '9')){

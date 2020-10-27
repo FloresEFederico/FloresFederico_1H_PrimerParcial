@@ -6,26 +6,37 @@
 
 
 static int generadorIdPublicacion(void); //utilizado en la funcion publicacion_altaArray
+static int esTxtArchivo(char* pResultado);
 
 /**
  * brief: Imprime los datos de la variable Publicacion
  * \param: auxProducto: variable de Publicaciona ser imprimida
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int publicacion_imprimir(Publicacion* auxPublicacion)
+int publicacion_imprimir(Publicacion* pPublicacion)
 {
 	int retorno= -1;
+	int auxId;
+	int auxRubro;
+	char auxTxtArchivo[TXTARCHIVO_LEN];
+	int auxIdCliente;
+	int auxEstado;
 	char estadoDePublicacion[10];
-	if(auxPublicacion != NULL)
+	if(pPublicacion != NULL &&
+	   !pub_getId(pPublicacion,&auxId) &&
+	   !pub_getRubro(pPublicacion,&auxRubro) &&
+	   !pub_getTxtArchivo(pPublicacion,auxTxtArchivo) &&
+	   !pub_getidCliente(pPublicacion,&auxIdCliente) &&
+	   !pub_getEstado(pPublicacion,&auxEstado))
 	{
-		if(auxPublicacion->estado == ACTIVO)
+		if(auxEstado == ACTIVO)
 		{
 			snprintf(estadoDePublicacion,sizeof(estadoDePublicacion),"ACTIVO");
 		}else
 		{
 			snprintf(estadoDePublicacion,sizeof(estadoDePublicacion),"PAUSADA");
 		}
-		printf("\nID: %d\nN° DE RUBRO: %d  - IDCLIENTE: %d  - ESTADO: %s\nNOMBRE DE ARCHIVO: %s\n",auxPublicacion->id,auxPublicacion->numeroDeRubro,auxPublicacion->idCliente,estadoDePublicacion,auxPublicacion->textoDelArchivo);
+		printf("\nID: %d\nN° DE RUBRO: %d  - IDCLIENTE: %d  - ESTADO: %s\nNOMBRE DE ARCHIVO: %s\n",auxId,auxRubro,auxIdCliente,estadoDePublicacion,auxTxtArchivo);
 		retorno = 0;
 	}
 	return retorno;
@@ -36,7 +47,7 @@ int publicacion_imprimir(Publicacion* auxPublicacion)
  * \param limite: limite del array de Publicaciones
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int publicacion_imprimirArray(Publicacion* pArray,int limite)
+int publicacion_imprimirArray(Publicacion** pArray,int limite)
 {
 	int retorno = -1;
 	int i;
@@ -45,9 +56,9 @@ int publicacion_imprimirArray(Publicacion* pArray,int limite)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE)
+			if(pArray[i] == NULL)
 			{
-				publicacion_imprimir(&pArray[i]);
+				publicacion_imprimir(*(pArray+i));
 				flag = 1;
 			}
 		}
@@ -68,18 +79,19 @@ int publicacion_imprimirArray(Publicacion* pArray,int limite)
  * \param limite: limite del array de Publicaciones
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int publicacion_imprimirPublicacionesActivas(Publicacion* pArray,int limite)
+int publicacion_imprimirPublicacionesActivas(Publicacion** pArray,int limite)
 {
 	int retorno = -1;
 	int i;
 	int flag = 0;
+	int auxEstado;
 	if(pArray != NULL && limite > 0)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].estado == ACTIVO)
+			if(pArray[i] != NULL && !pub_getEstado(*(pArray+i),&auxEstado)  && auxEstado == ACTIVO)
 			{
-				publicacion_imprimir(&pArray[i]);
+				publicacion_imprimir(*(pArray+i));
 				flag = 1;
 			}
 		}
@@ -100,7 +112,7 @@ int publicacion_imprimirPublicacionesActivas(Publicacion* pArray,int limite)
  * \param limite: limite del array de Publicaciones
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int publicacion_imprimirPublicacionesPausadas(Publicacion* pArray,int limite)
+int publicacion_imprimirPublicacionesPausadas(Publicacion** pArray,int limite)
 {
 	int retorno = -1;
 	int i;
@@ -109,9 +121,9 @@ int publicacion_imprimirPublicacionesPausadas(Publicacion* pArray,int limite)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].estado == PAUSADO)
+			if(pArray[i] != NULL && (*(pArray+i))->estado == PAUSADO)
 			{
-				publicacion_imprimir(&pArray[i]);
+				publicacion_imprimir(*(pArray+i));
 				flag = 1;
 			}
 		}
@@ -126,26 +138,7 @@ int publicacion_imprimirPublicacionesPausadas(Publicacion* pArray,int limite)
 	return retorno;
 }
 
-/**
- * brief: Inicializa el array
- * \param: pArray: Array de Publicaciones a ser actualizado
- * \param limite: limite del array de Publicaciones
- * \return Retorna 0 (EXITO) y -1(ERROR)
- */
-int publicacion_inicializarArray(Publicacion* pArray,int limite)
-{
-	int retorno = -1;
-	int i;
-	if(pArray != NULL && limite > 0)
-	{
-		for(i=0;i<limite;i++)
-		{
-			pArray[i].isEmpty = TRUE;
-		}
-		retorno = 0;
-	}
-	return retorno;
-}
+
 
 /**
  * brief: Busca un indice libre y lo devuelve
@@ -153,7 +146,7 @@ int publicacion_inicializarArray(Publicacion* pArray,int limite)
  * \param limite: limite del array de Publicaciones
  * \return Retorna i (EXITO) y -1(ERROR)
  */
-int publicacion_getEmptyIndex(Publicacion* pArray,int limite)
+int publicacion_getEmptyIndex(Publicacion** pArray,int limite)
 {
 	int indiceEncontrado = -1;
 	int i;
@@ -161,7 +154,7 @@ int publicacion_getEmptyIndex(Publicacion* pArray,int limite)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == TRUE)
+			if(*(pArray+i) == NULL)
 			{
 				indiceEncontrado = i;
 				break;
@@ -179,10 +172,14 @@ int publicacion_getEmptyIndex(Publicacion* pArray,int limite)
  * \param limiteCliente: limite del array de CLientes.
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int publicacion_altaArray(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente)
+int publicacion_altaArray(Publicacion** pArray,int limite,Cliente** pArrayCliente,int limiteCliente)
 {
 	int retorno = -1;
-	Publicacion auxPublicacion;
+	int auxId;
+	int auxNumDeRubro;
+	char auxTxtDelArchivo[TXTARCHIVO_LEN];
+	int auxEstado;
+	Publicacion* auxPublicacion;
 	int indiceLibre;
 	int auxIdCliente;
 	int existeIdCliente;
@@ -195,15 +192,14 @@ int publicacion_altaArray(Publicacion* pArray,int limite,Cliente* pArrayCliente,
 		{
 			existeIdCliente = cliente_buscarId(pArrayCliente,limiteCliente,auxIdCliente);
 			if(existeIdCliente != -1 &&
-			   !utn_getNumero(&auxPublicacion.numeroDeRubro,"\nIngrese N° de Rubro(1-100): ","\nNumero invalida!\n",MIN_NUMRUBRO,MAX_NUMRUBRO,3) &&
-			   !utn_getDireccion(auxPublicacion.textoDelArchivo,TXTARCHIVO_LEN,"\nIngrese Texto del Archivo: ","\nTexto invalido!\n",3))
+			   !utn_getNumero(&auxNumDeRubro,"\nIngrese N° de Rubro(1-100): ","\nNumero invalida!\n",MIN_NUMRUBRO,MAX_NUMRUBRO,3) &&
+			   !utn_getDireccion(auxTxtDelArchivo,TXTARCHIVO_LEN,"\nIngrese Texto del Archivo: ","\nTexto invalido!\n",3))
 			{
-				auxPublicacion.idCliente = auxIdCliente;
-				auxPublicacion.id = generadorIdPublicacion();
-				auxPublicacion.estado = ACTIVO;
-				auxPublicacion.isEmpty = FALSE;
-				pArray[indiceLibre] = auxPublicacion;
-				publicacion_imprimir(&pArray[indiceLibre]);
+				auxId = generadorIdPublicacion();
+				auxEstado = ACTIVO;
+				auxPublicacion = pub_newConParametros(auxId,auxNumDeRubro,auxTxtDelArchivo,auxIdCliente,auxEstado);
+				*(pArray+indiceLibre) = auxPublicacion;
+				publicacion_imprimir(*(pArray+indiceLibre));
 				printf("\nSe ha publico un nuevo aviso exitosamente!\n");
 				retorno = 0;
 			}
@@ -229,7 +225,7 @@ int publicacion_altaArray(Publicacion* pArray,int limite,Cliente* pArrayCliente,
  * \param: idABuscar: id a ser buscado
  * \return Retorna i (ID ENCONTRADO) y -1(ID NO ENCONTRADO)
  */
-int publicacion_buscarId(Publicacion* pArray,int limite,int idABuscar)
+int publicacion_buscarId(Publicacion** pArray,int limite,int idABuscar)
 {
 	int indiceEncontrado = -1;
 	int i;
@@ -237,7 +233,7 @@ int publicacion_buscarId(Publicacion* pArray,int limite,int idABuscar)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].id == idABuscar)
+			if(*(pArray+i) != NULL && (*(pArray+i))->id == idABuscar)
 			{
 				indiceEncontrado = i;
 				break;
@@ -255,7 +251,7 @@ int publicacion_buscarId(Publicacion* pArray,int limite,int idABuscar)
  * \param limiteCliente: limite del array de Clientes
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int publicacion_pausarPublicacion(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente)
+int publicacion_pausarPublicacion(Publicacion** pArray,int limite,Cliente** pArrayCliente,int limiteCliente)
 {
 	int retorno = -1;
 	int auxIdPublicacion;
@@ -271,7 +267,7 @@ int publicacion_pausarPublicacion(Publicacion* pArray,int limite,Cliente* pArray
 		{
 			 if(confirmarPausa == 's')
 			 {
-				pArray[indicePublicacion].estado = PAUSADO;
+				pub_setEstado(*(pArray+indicePublicacion),PAUSADO);
 				printf("\nSe ha pausado la publicacion!\n");
 			 }else
 			 {
@@ -296,7 +292,7 @@ int publicacion_pausarPublicacion(Publicacion* pArray,int limite,Cliente* pArray
  * \param limiteCliente: limite del array de Clientes
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int publicacion_reanudarPublicacion(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente)
+int publicacion_reanudarPublicacion(Publicacion** pArray,int limite,Cliente** pArrayCliente,int limiteCliente)
 {
 	int retorno = -1;
 	int auxIdPublicacion;
@@ -312,8 +308,8 @@ int publicacion_reanudarPublicacion(Publicacion* pArray,int limite,Cliente* pArr
 		{
 			 if(confirmarReanudacion == 's')
 			 {
-				pArray[indicePublicacion].estado = ACTIVO;
-				printf("\nSe ha reanudaado la publicacion!\n");
+				pub_setEstado(*(pArray+indicePublicacion),ACTIVO);
+				printf("\nSe ha reanudado la publicacion!\n");
 			 }else
 			 {
 					printf("\nSe ha cancelado la accion!\n");
@@ -339,22 +335,24 @@ int publicacion_reanudarPublicacion(Publicacion* pArray,int limite,Cliente* pArr
  * \param idPublicacion: idPublicacion.
  * \nreturn Retorna 0 (EXITO) y -1 (ERROR)
  */
-int publicacion_mostrarClientesConPublicacion(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente,int idPublicacion)
+int publicacion_mostrarClientesConPublicacion(Publicacion** pArray,int limite,Cliente** pArrayCliente,int limiteCliente,int idPublicacion)
 {
 	int retorno = -1;
 	int i;
 	int buscarIndiceCliente;
+	int auxIdPublicacion;
+	int auxIdCliente;
 	if(pArray != NULL && limite > 0 && pArrayCliente != NULL && limiteCliente > 0)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].id == idPublicacion)
+			if(*(pArray+i) != NULL && !pub_getId(*(pArray+i),&auxIdPublicacion) && auxIdPublicacion == idPublicacion && !pub_getidCliente(*(pArray+i),&auxIdCliente))
 			{
-				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,pArray[i].idCliente);
+				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,auxIdCliente);
 				if(buscarIndiceCliente != -1)
 				{
-					publicacion_imprimir(&pArray[i]);
-					cliente_imprimir(&pArrayCliente[buscarIndiceCliente]);
+					publicacion_imprimir(*(pArray+i));
+					cliente_imprimir(*(pArrayCliente+buscarIndiceCliente));
 					retorno = 0;
 				}
 			}
@@ -372,22 +370,29 @@ int publicacion_mostrarClientesConPublicacion(Publicacion* pArray,int limite,Cli
  * \param idClientes: idCliente.
  * \nreturn Retorna 0 (EXITO) y -1 (ERROR)
  */
-int publicacion_mostrarPoridCliente(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente,int idClientes)
+int publicacion_mostrarPoridCliente(Publicacion** pArray,int limite,Cliente** pArrayCliente,int limiteCliente,int idClientes)
 {
 	int retorno = -1;
 	int i;
 	int buscarIndiceCliente;
+	int auxIdCliente;
+	char auxApellido[NOMBRE_LEN];
+	char auxNombre[NOMBRE_LEN];
+	char auxCuit[CUIT_LEN];
 	if(pArray != NULL && limite > 0 && pArrayCliente != NULL && limiteCliente > 0)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].idCliente == idClientes)
+			if(*(pArray+i) != NULL && !pub_getidCliente(*(pArray+i),&auxIdCliente) && auxIdCliente == idClientes)
 			{
-				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,pArray[i].idCliente);
-				if(buscarIndiceCliente != -1)
+				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,auxIdCliente);
+				if(buscarIndiceCliente != -1 &&
+				   !cli_getApellido(*(pArrayCliente+buscarIndiceCliente),auxApellido) &&
+				   !cli_getNombre(*(pArrayCliente+buscarIndiceCliente),auxNombre) &&
+				   !cli_getCuit(*(pArrayCliente+buscarIndiceCliente),auxCuit))
 				{
-					publicacion_imprimir(&pArray[i]);
-					printf("APELLIDO,NOMBRE: %s,%s   - CUIT: %s\n",pArrayCliente[buscarIndiceCliente].apellido,pArrayCliente[buscarIndiceCliente].nombre,pArrayCliente[buscarIndiceCliente].cuit);
+					publicacion_imprimir(*(pArray+i));
+					printf("APELLIDO,NOMBRE: %s,%s   - CUIT: %s\n",auxApellido,auxNombre,auxCuit);
 					retorno = 0;
 				}
 			}
@@ -405,22 +410,30 @@ int publicacion_mostrarPoridCliente(Publicacion* pArray,int limite,Cliente* pArr
  * \param rubro: N° de rubro.
  * \nreturn Retorna 0 (EXITO) y -1 (ERROR)
  */
-int publicacion_mostrarPorRubro(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente,int rubro)
+int publicacion_mostrarPorRubro(Publicacion** pArray,int limite,Cliente** pArrayCliente,int limiteCliente,int rubro)
 {
 	int retorno = -1;
 	int i;
 	int buscarIndiceCliente;
+	int auxRubro;
+	int auxIdCliente;
+	char auxApellido[NOMBRE_LEN];
+	char auxNombre[NOMBRE_LEN];
+	char auxCuit[CUIT_LEN];
 	if(pArray != NULL && limite > 0 && pArrayCliente != NULL && limiteCliente > 0)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].numeroDeRubro == rubro)
+			if(*(pArray+i) != NULL && !pub_getRubro(*(pArray+i),&auxRubro) && auxRubro == rubro && !pub_getidCliente(*(pArray+i),&auxIdCliente))
 			{
-				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,pArray[i].idCliente);
-				if(buscarIndiceCliente != -1)
+				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,auxIdCliente);
+				if(buscarIndiceCliente != -1 &&
+				   !cli_getApellido(*(pArrayCliente+buscarIndiceCliente),auxApellido) &&
+				   !cli_getNombre(*(pArrayCliente+buscarIndiceCliente),auxNombre) &&
+				   !cli_getCuit(*(pArrayCliente+buscarIndiceCliente),auxCuit))
 				{
-					publicacion_imprimir(&pArray[i]);
-					printf("APELLIDO,NOMBRE: %s,%s   - CUIT: %s\n",pArrayCliente[buscarIndiceCliente].apellido,pArrayCliente[buscarIndiceCliente].nombre,pArrayCliente[buscarIndiceCliente].cuit);
+					publicacion_imprimir(*(pArray+i));
+					printf("APELLIDO,NOMBRE: %s,%s   - CUIT: %s\n",auxApellido,auxNombre,auxCuit);
 					retorno = 0;
 				}
 			}
@@ -438,22 +451,30 @@ int publicacion_mostrarPorRubro(Publicacion* pArray,int limite,Cliente* pArrayCl
  * \param estado: ACTIVO o PAUSADO.
  * \nreturn Retorna 0 (EXITO) y -1 (ERROR)
  */
-int publicacion_mostrarPorEstado(Publicacion* pArray,int limite,Cliente* pArrayCliente,int limiteCliente,int estado)
+int publicacion_mostrarPorEstado(Publicacion** pArray,int limite,Cliente** pArrayCliente,int limiteCliente,int estado)
 {
 	int retorno = -1;
 	int i;
 	int buscarIndiceCliente;
+	int auxEstado;
+	int auxIdCliente;
+	char auxApellido[NOMBRE_LEN];
+	char auxNombre[NOMBRE_LEN];
+	char auxCuit[CUIT_LEN];
 	if(pArray != NULL && limite > 0 && pArrayCliente != NULL && limiteCliente > 0)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].estado == estado)
+			if(*(pArray+i) != NULL && !pub_getEstado(*(pArray+i),&auxEstado) && auxEstado == estado && !pub_getidCliente(*(pArray+i),&auxIdCliente))
 			{
-				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,pArray[i].idCliente);
-				if(buscarIndiceCliente != -1)
+				buscarIndiceCliente = cliente_buscarId(pArrayCliente,limiteCliente,auxIdCliente);
+				if(buscarIndiceCliente != -1 &&
+				   !cli_getApellido(*(pArrayCliente+buscarIndiceCliente),auxApellido) &&
+				   !cli_getNombre(*(pArrayCliente+buscarIndiceCliente),auxNombre) &&
+				   !cli_getCuit(*(pArrayCliente+buscarIndiceCliente),auxCuit))
 				{
-					publicacion_imprimir(&pArray[i]);
-					printf("APELLIDO,NOMBRE: %s,%s   - CUIT: %s\n",pArrayCliente[buscarIndiceCliente].apellido,pArrayCliente[buscarIndiceCliente].nombre,pArrayCliente[buscarIndiceCliente].cuit);
+					publicacion_imprimir(*(pArray+i));
+					printf("APELLIDO,NOMBRE: %s,%s   - CUIT: %s\n",auxApellido,auxNombre,auxCuit);
 					retorno = 0;
 				}
 			}
@@ -472,15 +493,17 @@ int publicacion_mostrarPorEstado(Publicacion* pArray,int limite,Cliente* pArrayC
  * \param: estado: estado a ser buscado
  * \return Retorna i (ID ENCONTRADO) y -1(ID NO ENCONTRADO)
  */
-int publicacion_buscarIdyEstado(Publicacion* pArray,int limite,int idABuscar,int estado)
+int publicacion_buscarIdyEstado(Publicacion** pArray,int limite,int idABuscar,int estado)
 {
 	int indiceEncontrado = -1;
 	int i;
+	int auxIdPublicacion;
+	int auxEstado;
 	if(pArray != NULL && limite > 0)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].id == idABuscar && pArray[i].estado == estado)
+			if(*(pArray+i) != NULL && !pub_getId(*(pArray+i),&auxIdPublicacion) && auxIdPublicacion == idABuscar && !pub_getEstado(*(pArray+i),&auxEstado) && auxEstado == estado)
 			{
 				indiceEncontrado = i;
 				break;
@@ -497,15 +520,16 @@ int publicacion_buscarIdyEstado(Publicacion* pArray,int limite,int idABuscar,int
  * \param: rubroABuscar: id a ser buscado
  * \return Retorna i (ID ENCONTRADO) y -1(ID NO ENCONTRADO)
  */
-int publicacion_buscarRubro(Publicacion* pArray,int limite,int rubroABuscar)
+int publicacion_buscarRubro(Publicacion** pArray,int limite,int rubroABuscar)
 {
 	int indiceEncontrado = -1;
 	int i;
+	int auxRubro;
 	if(pArray != NULL && limite > 0)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].numeroDeRubro == rubroABuscar)
+			if(*(pArray+i) != NULL && !pub_getRubro(*(pArray+i),&auxRubro) && auxRubro == rubroABuscar)
 			{
 				indiceEncontrado = i;
 				break;
@@ -524,4 +548,181 @@ static int generadorIdPublicacion(void)
 	static int id = 999;
 	id++;
 	return id;
+}
+
+
+Publicacion* pub_newConParametros(int id, int numeroDeRubro,char* textoDelArchivo,int idCliente,int estado)
+{
+	Publicacion* pc;
+	if(id >= 0 &&  textoDelArchivo != NULL)
+	{
+		pc = (Publicacion*)malloc(sizeof(Publicacion));
+		if(pc != NULL)
+		{
+			pub_setId(pc,id);
+			pub_setRubro(pc,numeroDeRubro);
+			pub_setTxtArchivo(pc,textoDelArchivo);
+			pub_setidCliente(pc,idCliente);
+			pub_setEstado(pc,estado);
+		}
+	}
+	return pc;
+}
+
+int pub_initArray(Publicacion** pArray,int limite)
+{
+	int retorno = -1;
+	int i;
+	if(pArray != NULL && limite)
+	{
+		for(i=0;i<limite;i++)
+		{
+			*(pArray+i) = NULL;
+		}
+		retorno = 0;
+	}
+	return retorno;
+}
+void pub_delete(Publicacion* pc)
+{
+	if(pc!= NULL)
+	{
+		free(pc);
+	}
+}
+
+//-------------------------GETTERS--------------------------------------
+int pub_getId(Publicacion* pArray, int* pValor)
+{
+	int ret = -1;
+	if(pArray != NULL && pValor != NULL)
+	{
+		*pValor = pArray->id;
+		ret = 0;
+	}
+	return ret;
+}
+int pub_getRubro(Publicacion* pArray, int* numRubro)
+{
+	int ret = -1;
+	if(pArray != NULL && numRubro != NULL)
+	{
+		*numRubro = pArray->numeroDeRubro;
+		ret = 0;
+	}
+	return ret;
+
+}
+int pub_getTxtArchivo(Publicacion* pArray, char* txtArchivo)
+{
+	int ret = -1;
+	if(pArray != NULL && txtArchivo != NULL)
+	{
+		strncpy(txtArchivo,pArray->textoDelArchivo,TXTARCHIVO_LEN);
+		ret = 0;
+	}
+	return ret;
+}
+int pub_getidCliente(Publicacion* pArray, int* idCliente)
+{
+	int ret = -1;
+	if(pArray != NULL && idCliente != NULL)
+	{
+		*idCliente = pArray->idCliente;
+		ret = 0;
+	}
+	return ret;
+
+}
+int pub_getEstado(Publicacion* pArray, int* estado)
+{
+	int ret = -1;
+	if(pArray != NULL && estado != NULL)
+	{
+		*estado = pArray->estado;
+		ret = 0;
+	}
+	return ret;
+}
+//-------------------------sETTERS--------------------------------------
+int pub_setId(Publicacion* pArray, int pValor)
+{
+	int ret = -1;
+	if(pArray != NULL && pValor > 0 && pValor >= 1000 && pValor <= 1999)
+	{
+		pArray->id = pValor;
+		ret = 0;
+	}
+	return ret;
+}
+int pub_setRubro(Publicacion* pArray, int numRubro)
+{
+	int ret = -1;
+	if(pArray != NULL && numRubro > 0 && numRubro >= MIN_NUMRUBRO && numRubro <= MAX_NUMRUBRO)
+	{
+		pArray->numeroDeRubro = numRubro;
+		ret = 0;
+	}
+	return ret;
+
+}
+int pub_setTxtArchivo(Publicacion* pArray, char* txtArchivo)
+{
+	int ret = -1;
+	if(pArray != NULL && txtArchivo != NULL)
+	{
+		if(esTxtArchivo(txtArchivo))
+		{
+			strncpy(pArray->textoDelArchivo,txtArchivo,TXTARCHIVO_LEN);
+			ret = 0;
+		}
+	}
+	return ret;
+
+}
+int pub_setidCliente(Publicacion* pArray, int idCliente)
+{
+	int ret = -1;
+	if(pArray != NULL && idCliente > 0)
+	{
+		if(idCliente >= MIN_IDCLIENTE && idCliente <= MAX_IDCLIENTE)
+		{
+			pArray->idCliente = idCliente;
+			ret = 0;
+		}
+	}
+	return ret;
+
+}
+int pub_setEstado(Publicacion* pArray, int estado)
+{
+	int ret = -1;
+	if(pArray != NULL && (estado == ACTIVO || estado == PAUSADO))
+	{
+		pArray->estado = estado;
+		ret = 0;
+	}
+	return ret;
+
+}
+
+static int esTxtArchivo(char* pResultado)
+{
+	int retorno = 1;
+	int i;
+	if(pResultado != NULL){
+		for(i=0;pResultado[i] != '\0';i++){
+			if((pResultado[i] != ' ') &&
+			   (pResultado[i] != '.') &&
+			   (pResultado[i] != '¡') && (pResultado[i] != '!') &&
+			   (pResultado[i] != '¿') && (pResultado[i] != '?') &&
+			   (pResultado[i] < 'a' || pResultado[i] > 'z') &&
+			   (pResultado[i] < 'A' || pResultado[i] > 'Z') &&
+			   (pResultado[i] < '0' || pResultado[i] > '9')){
+				retorno = 0;
+				break;
+			}
+		}
+	}
+	return retorno;
 }

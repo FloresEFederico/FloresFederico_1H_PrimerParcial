@@ -1,23 +1,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "utn.h"
 #include "Cliente.h"
 
 
 static int generadorIdCliente(void); //utilizado en la funcion cliente_altaArray
-static int cliente_bajaDePublicacionesDelCliente(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,int limitePublicacion,int indiceDeCliente); // utilizada en la funcion cliente_bajaArray.
+static int cliente_bajaDePublicacionesDelCliente(Cliente** pArray,int limite,Publicacion** pArrayPublicacion,int limitePublicacion,int indiceDeCliente); // utilizada en la funcion cliente_bajaArray.
+static int esNombre(char* pResultado,int limite);
+static int toNombre(char text[],int len);
+static int esCuit(char* pResultado,int limite);
 /**
  * brief: Imprime los datos de un Cliente
  * \param: auxProducto: Cliente a ser imprimido
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int cliente_imprimir(Cliente* auxCliente)
+int cliente_imprimir(Cliente* pCliente)
 {
 	int retorno= -1;
-	if(auxCliente != NULL)
+	int auxId;
+	char auxApellido[NOMBRE_LEN];
+	char auxNombre[NOMBRE_LEN];
+	char auxCuit[CUIT_LEN];
+	if(pCliente != NULL && !cli_getId(pCliente,&auxId) && !cli_getApellido(pCliente,auxApellido) && !cli_getNombre(pCliente,auxNombre) && !cli_getCuit(pCliente,auxCuit))
 	{
-		printf("\nID CLIENTE: %d -  APELLIDO Y NOMBRE: %s,%s -  CUIT: %s\n",auxCliente->id,auxCliente->apellido,auxCliente->nombre,auxCliente->cuit);
+		printf("\nID CLIENTE: %d -  APELLIDO Y NOMBRE: %s,%s -  CUIT: %s\n",auxId,auxApellido,auxNombre,auxCuit);
 		retorno = 0;
 	}
 	return retorno;
@@ -28,7 +36,7 @@ int cliente_imprimir(Cliente* auxCliente)
  * \param limite: limite del array de clientes
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int cliente_imprimirArray(Cliente* pArray,int limite)
+int cliente_imprimirArray(Cliente** pArray,int limite)
 {
 	int retorno = -1;
 	int i;
@@ -37,9 +45,9 @@ int cliente_imprimirArray(Cliente* pArray,int limite)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE)
+			if(pArray[i] != NULL)
 			{
-				cliente_imprimir(&pArray[i]);
+				cliente_imprimir(*(pArray+i));
 				flag = 1;
 			}
 		}
@@ -54,26 +62,7 @@ int cliente_imprimirArray(Cliente* pArray,int limite)
 	return retorno;
 }
 
-/**
- * brief: Inicializa el array de CLientes
- * \param: pArray: Array de Clientes
- * \param limite: limite del array de Clientes
- * \return Retorna 0 (EXITO) y -1(ERROR)
- */
-int cliente_inicializarArray(Cliente* pArray,int limite)
-{
-	int retorno = -1;
-	int i;
-	if(pArray != NULL && limite > 0)
-	{
-		for(i=0;i<limite;i++)
-		{
-			pArray[i].isEmpty = TRUE;
-		}
-		retorno = 0;
-	}
-	return retorno;
-}
+
 
 /**
  * brief: Busca un indice libre y lo devuelve
@@ -81,7 +70,7 @@ int cliente_inicializarArray(Cliente* pArray,int limite)
  * \param limite: limite del array de Cliente
  * \return Retorna i (EXITO) y -1(ERROR)
  */
-int cliente_getEmptyIndex(Cliente* pArray,int limite)
+int cliente_getEmptyIndex(Cliente** pArray,int limite)
 {
 	int indiceEncontrado = -1;
 	int i;
@@ -89,7 +78,7 @@ int cliente_getEmptyIndex(Cliente* pArray,int limite)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == TRUE)
+			if(pArray[i] == NULL)
 			{
 				indiceEncontrado = i;
 				break;
@@ -105,30 +94,31 @@ int cliente_getEmptyIndex(Cliente* pArray,int limite)
  * \param limite: limite del array de Cliente
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int cliente_altaArray(Cliente* pArray,int limite)
+int cliente_altaArray(Cliente** pArray,int limite)
 {
 	int retorno = -1;
-	Cliente auxCliente;
+	int auxId;
+	char auxNombre[NOMBRE_LEN];
+	char auxApellido[NOMBRE_LEN];
+	char auxCuit[CUIT_LEN];
+	Cliente* auxCliente;
 	int indiceLibre;
+
 	if(pArray != NULL && limite > 0)
 	{
 		indiceLibre = cliente_getEmptyIndex(pArray,limite);
 		if(indiceLibre != -1 &&
-		   !utn_getNombre(auxCliente.nombre,NOMBRE_LEN,"\nIngrese Nombre del Cliente: ","\nNombre invalido!\n",3) &&
-		   !utn_getNombre(auxCliente.apellido,NOMBRE_LEN,"Ingrese Apellido del Cliente: ","\nApellido invalida!\n",3) &&
-		   !utn_getDni(auxCliente.cuit,CUIT_LEN,"Ingrese Cuit del Cliente: ","\nCuit invalida!\n",3)
+		   !utn_getNombre(auxNombre,NOMBRE_LEN,"\nIngrese Nombre del Cliente: ","\nNombre invalido!\n",3) &&
+		   !utn_getNombre(auxApellido,NOMBRE_LEN,"Ingrese Apellido del Cliente: ","\nApellido invalida!\n",3) &&
+		   !utn_getDni(auxCuit,CUIT_LEN,"Ingrese Cuit del Cliente: ","\nCuit invalida!\n",3)
 		   )
 		{
-			auxCliente.id = generadorIdCliente();
-			auxCliente.isEmpty = FALSE;
-			pArray[indiceLibre] = auxCliente;
+			auxId = generadorIdCliente();
+			auxCliente = cli_newConParametros(auxId,auxNombre,auxApellido,auxCuit);
+			*(pArray+indiceLibre) = auxCliente;
 			printf("\nSe ha realizado el alta exitosamente!\n");
-			cliente_imprimir(&pArray[indiceLibre]);
+			cliente_imprimir(*(pArray+indiceLibre));
 			retorno = 0;
-		}
-		if(indiceLibre == -1)
-		{
-			printf("\nYa no hay espacio para seguir cargando Clientes.\n");
 		}
 	}
 	return retorno;
@@ -142,15 +132,16 @@ int cliente_altaArray(Cliente* pArray,int limite)
  * \param: idABuscar: id a ser buscado
  * \return Retorna i (ID ENCONTRADO) y -1(ID NO ENCONTRADO)
  */
-int cliente_buscarId(Cliente* pArray,int limite,int idABuscar)
+int cliente_buscarId(Cliente** pArray,int limite,int idABuscar)
 {
 	int indiceEncontrado = -1;
 	int i;
+	int auxId;
 	if(pArray != NULL && limite > 0)
 	{
 		for(i=0;i<limite;i++)
 		{
-			if(pArray[i].isEmpty == FALSE && pArray[i].id == idABuscar)
+			if(pArray[i] != NULL && !cli_getId(*(pArray+i),&auxId) && auxId == idABuscar)
 			{
 				indiceEncontrado = i;
 				break;
@@ -166,7 +157,7 @@ int cliente_buscarId(Cliente* pArray,int limite,int idABuscar)
  * \param limite: limite del array de Cliente
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int cliente_modificarArray(Cliente* pArray,int limite)
+int cliente_modificarArray(Cliente** pArray,int limite)
 {
 	int retorno = -1;
 	int idModificacion;
@@ -190,20 +181,18 @@ int cliente_modificarArray(Cliente* pArray,int limite)
 			switch(opcionModificar)
 			{
 			case 1:
-				if(!utn_getNombre(auxNombre,NOMBRE_LEN,"\nIngrese nuevo Nombre: ","\nNombre invalido!\n",3))
+				if(!utn_getNombre(auxNombre,NOMBRE_LEN,"\nIngrese nuevo Nombre: ","\nNombre invalido!\n",3) && !cli_setNombre(*(pArray+indiceAModificar),auxNombre))
 				{
-					strncpy(pArray[indiceAModificar].nombre,auxNombre,NOMBRE_LEN);
 					printf("\nSe ha modificado el Nombre!\n");
 					retorno = 0;
 				}else
 				{
-					printf("\nSe acabo el numero de reintentos para ingresar un Nombre valido\n");
+					printf("\nHubo Un error al modificar el nombre\n");
 				}
 				break;
 			case 2:
-				if(!utn_getNombre(auxApellido,NOMBRE_LEN,"\nIngrese nuevo Apellido: ","\nApellido invalido!\n",3))
+				if(!utn_getNombre(auxApellido,NOMBRE_LEN,"\nIngrese nuevo Apellido: ","\nApellido invalido!\n",3) && !cli_setApellido(*(pArray+indiceAModificar),auxApellido))
 				{
-					strncpy(pArray[indiceAModificar].apellido,auxApellido,NOMBRE_LEN);
 					printf("\nSe ha modificado el Apellido!\n");
 					retorno = 0;
 				}else
@@ -212,9 +201,8 @@ int cliente_modificarArray(Cliente* pArray,int limite)
 				}
 				break;
 			case 3:
-				if(!utn_getDni(auxCuit,CUIT_LEN,"\nIngrese nuevo Cuit: ","\nCuit invalido!\n",3))
+				if(!utn_getDni(auxCuit,CUIT_LEN,"\nIngrese nuevo Cuit: ","\nCuit invalido!\n",3) && !cli_setCuit(*(pArray+indiceAModificar),auxCuit))
 				{
-					strncpy(pArray[indiceAModificar].cuit,auxCuit,CUIT_LEN);
 					printf("\nSe ha modificado el Cuit!\n");
 					retorno = 0;
 				}else
@@ -244,7 +232,7 @@ int cliente_modificarArray(Cliente* pArray,int limite)
  * \param limitePublicacion: limite del array de Publicacion
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-int cliente_bajaArray(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,int limitePublicacion)
+int cliente_bajaArray(Cliente** pArray,int limite,Publicacion** pArrayPublicacion,int limitePublicacion)
 {
 	int retorno = -1;
 	int idBaja;
@@ -252,28 +240,29 @@ int cliente_bajaArray(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,
 	char confirmarBaja;
 
 	if(pArray != NULL && limite > 0 && !cliente_imprimirArray(pArray,limite))
+	{
+		utn_getNumero(&idBaja,"Ingrese el ID del Cliente que desea dar de baja(100-999): ","\nID invalido!\n",100,999,3);
+		indiceADarDeBaja = cliente_buscarId(pArray,limite,idBaja);
+		if(indiceADarDeBaja != - 1 && !utn_getResponse(&confirmarBaja,"\nDesea confirmar la baja?(s-n): ","\nLetra invalida!\n",3))
 		{
-			utn_getNumero(&idBaja,"Ingrese el ID del Cliente que desea dar de baja(100-999): ","\nID invalido!\n",100,999,3);
-			indiceADarDeBaja = cliente_buscarId(pArray,limite,idBaja);
-			if(indiceADarDeBaja != - 1 && !utn_getResponse(&confirmarBaja,"\nDesea confirmar la baja?(s-n): ","\nLetra invalida!\n",3))
+			if(confirmarBaja == 's' &&
+			  !cliente_bajaDePublicacionesDelCliente(pArray,limite,pArrayPublicacion,limitePublicacion,indiceADarDeBaja))
 			{
-				if(confirmarBaja == 's')
-				{
-					cliente_bajaDePublicacionesDelCliente(pArray,limite,pArrayPublicacion,limitePublicacion,indiceADarDeBaja);
-					pArray[indiceADarDeBaja].isEmpty = TRUE;
-					printf("\nSe ha dado de baja al Cliente con todas sus publicaciones exitosamente\n");
-				}else
-				{
-					printf("\nSe ha cancelado la baja!\n");
-				}
-				fflush(stdin);
-				retorno = 0;
-			}
-			if(indiceADarDeBaja == -1)
+				cli_delete(*(pArray+indiceADarDeBaja));
+				*(pArray+indiceADarDeBaja) = NULL;
+				printf("\nSe ha dado de baja al Cliente con todas sus publicaciones exitosamente\n");
+			}else
 			{
-				printf("\nNo se encontro a una Cliente con ese ID.\n");
+				printf("\nSe ha cancelado la baja!\n");
 			}
+			fflush(stdin);
+			retorno = 0;
 		}
+		if(indiceADarDeBaja == -1)
+		{
+			printf("\nNo se encontro a una Cliente con ese ID.\n");
+		}
+	}
 	return retorno;
 }
 
@@ -286,15 +275,21 @@ int cliente_bajaArray(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,
  * \param indiceDeCliente: indice del cliente al cual se le dara de baja las publicaciones.
  * \return Retorna 0 (EXITO) y -1(ERROR)
  */
-static int cliente_bajaDePublicacionesDelCliente(Cliente* pArray,int limite,Publicacion* pArrayPublicacion,int limitePublicacion,int indiceDeCliente)
+static int cliente_bajaDePublicacionesDelCliente(Cliente** pArray,int limite,Publicacion** pArrayPublicacion,int limitePublicacion,int indiceDeCliente)
 {
 	int retorno= -1;
 	int i;
-	for(i=0;i<limitePublicacion;i++)
+	int auxIdCliente;
+	int auxPublicacionIdCliente;
+	if(pArray != NULL && limite > 0 && pArrayPublicacion != NULL && limitePublicacion > 0 && indiceDeCliente >= 0 && !cli_getId(*(pArray+indiceDeCliente),&auxIdCliente))
 	{
-		if(pArray[indiceDeCliente].id == pArrayPublicacion[i].idCliente)
+		for(i=0;i<limitePublicacion;i++)
 		{
-			pArrayPublicacion[i].isEmpty = TRUE;
+			if(*(pArrayPublicacion+i) != NULL && !pub_getidCliente(*(pArrayPublicacion+i),&auxPublicacionIdCliente) && auxIdCliente == auxPublicacionIdCliente)
+			{
+				pub_delete(*(pArrayPublicacion+i));
+				*(pArrayPublicacion+i) = NULL;
+			}
 		}
 		retorno = 0;
 	}
@@ -310,4 +305,205 @@ static int generadorIdCliente(void)
 	static int id = 99;
 	id++;
 	return id;
+}
+
+Cliente* cli_newConParametros(int id, char* nombre,char* apellido,char* cuit)
+{
+	Cliente* pc;
+	if(id >= 0 &&  nombre != NULL)
+	{
+		pc = (Cliente*)malloc(sizeof(Cliente));
+		if(pc != NULL)
+		{
+			cli_setId(pc,id);
+			cli_setNombre(pc,nombre);
+			cli_setApellido(pc,apellido);
+			cli_setCuit(pc,cuit);
+		}
+	}
+	return pc;
+}
+
+void cli_delete(Cliente* pc)
+{
+	if(pc!= NULL)
+	{
+		free(pc);
+	}
+}
+
+int cli_initArray(Cliente** pArray,int limite)
+{
+	int retorno = -1;
+	int i;
+	if(pArray != NULL && limite > 0)
+	{
+		for(i=0;i<limite;i++)
+		{
+			*(pArray+i) = NULL;
+		}
+		retorno = 0;
+	}
+	return retorno;
+}
+
+//-------------------------GETTERS--------------------------------------
+int cli_getId(Cliente* pArray, int* pValor)
+{
+	int ret = -1;
+	if(pArray != NULL && pValor != NULL)
+	{
+		*pValor = pArray->id;
+		ret = 0;
+	}
+	return ret;
+}
+
+int cli_getNombre(Cliente* pArray, char* name)
+{
+	int ret = -1;
+	if(pArray != NULL && name != NULL)
+	{
+		strncpy(name,pArray->nombre,NOMBRE_LEN);
+		ret = 0;
+	}
+	return ret;
+}
+
+int cli_getApellido(Cliente* pArray, char* lastName)
+{
+	int ret = -1;
+	if(pArray != NULL && lastName != NULL)
+	{
+		strncpy(lastName,pArray->apellido,NOMBRE_LEN);
+		ret = 0;
+	}
+	return ret;
+}
+
+int cli_getCuit(Cliente* pArray, char* cuit)
+{
+	int ret = -1;
+	if(pArray != NULL && cuit != NULL)
+	{
+		strncpy(cuit,pArray->cuit,CUIT_LEN);
+		ret = 0;
+	}
+	return ret;
+}
+//-------------------------SETTERS--------------------------------------
+int cli_setId(Cliente* pArray,int pValor)
+{
+	int ret = -1;
+	if(pArray != NULL && pValor >= 100 && pValor <= 999)
+	{
+		pArray->id = pValor;
+		ret = 0;
+	}
+	return ret;
+}
+
+int cli_setNombre(Cliente* pArray, char* name)
+{
+	int ret = -1;
+	if(pArray != NULL && name != NULL)
+	{
+		if(esNombre(name,NOMBRE_LEN) && toNombre(name,NOMBRE_LEN))
+		{
+			strncpy(pArray->nombre,name,NOMBRE_LEN);
+			ret = 0;
+		}
+	}
+	return ret;
+}
+
+int cli_setApellido(Cliente* pArray, char* lastName)
+{
+	int ret = -1;
+	if(pArray != NULL && lastName != NULL)
+	{
+		if(esNombre(lastName,NOMBRE_LEN) && toNombre(lastName,NOMBRE_LEN))
+		{
+			strncpy(pArray->apellido,lastName,NOMBRE_LEN);
+			ret = 0;
+		}
+	}
+	return ret;
+}
+
+int cli_setCuit(Cliente* pArray, char* cuit)
+{
+	int ret = -1;
+	if(pArray != NULL && cuit != NULL)
+	{
+		if(esCuit(cuit,CUIT_LEN))
+		{
+			strncpy(pArray->cuit,cuit,CUIT_LEN);
+			ret = 0;
+		}
+	}
+	return ret;
+}
+
+
+static int esNombre(char* pResultado,int limite)
+{
+	int respuesta = 1;
+	int i;
+	if(pResultado != NULL && limite > 0){
+		for(i=0; i <= limite && pResultado[i] != '\0';i++){
+			if((pResultado[i] < 'a' || pResultado[i] > 'z') &&
+			   (pResultado[i] < 'A' || pResultado[i] > 'Z'))
+			{
+				respuesta = 0;
+				break;
+			}
+		}
+	}
+	return respuesta;
+}
+
+static int toNombre(char text[],int len)
+{
+	int retorno = 0;
+	int i;
+	if(text != NULL && len > 0)
+	{
+		for(i=0;i<len && text[i] != '\0';i++)
+		{
+			if(i!=0)
+			{
+				text[i] = tolower(text[i]);
+			}else
+			{
+				text[i] = toupper(text[i]);
+			}
+		}
+		retorno = 1;
+	}
+	return retorno;
+}
+
+static int esCuit(char* pResultado,int limite)
+{
+	int respuesta = 1;
+	int i;
+	int contadorDeGuion = 0;
+	int longitudDeDni = strlen(pResultado);
+	if(pResultado != NULL && limite > 0){
+		for(i=0; i <= limite && pResultado[i] != '\0';i++){
+			if((pResultado[i] < '0' || pResultado[i] > '9') || (longitudDeDni < 8))
+			{
+				if(pResultado[i] == '-' && contadorDeGuion < 3)
+				{
+					contadorDeGuion++;
+				}else
+				{
+					respuesta = 0;
+					break;
+				}
+			}
+		}
+	}
+	return respuesta;
 }

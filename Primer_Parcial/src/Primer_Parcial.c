@@ -1,10 +1,6 @@
 /*
  ============================================================================
- Name        : Primer_Parcial.c
- Author      : Flores Federico 1-H
- Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
+FALTA HACER CON MEMORIA DINAMICA TODOS LAS FUNCIONES QUE ESTAN COMENTADAS!!!!
  ============================================================================
  */
 #include <stdio.h>
@@ -15,15 +11,25 @@
 #include "Publicacion.h"
 #include "Informes.h"
 
+int cli_hardCodeo(Cliente** pArray);
+int pub_hardCodeo(Publicacion** pArray);
+
 
 int main(void) {
 	setbuf(stdout,NULL);
-	Cliente listaDeClientes[QTY_CLIENTES];
-	Publicacion listaDePublicaciones[QTY_PUBLICACIONES];
+	//Cliente listaDeClientes[QTY_CLIENTES]; // NO SIRVE MAS
+	//Publicacion listaDePublicaciones[QTY_PUBLICACIONES]; // NO SIRVE MAS
+	//cliente_inicializarArray(listaDeClientes,QTY_CLIENTES); // NO SIRVE MAS
+	//publicacion_inicializarArray(listaDePublicaciones,QTY_PUBLICACIONES);
+
+	Cliente* listOfClients[QTY_CLIENTES];
+	Publicacion* listOfPublications[QTY_PUBLICACIONES];
 	int opcion;
 
-	cliente_inicializarArray(listaDeClientes,QTY_CLIENTES);
-	publicacion_inicializarArray(listaDePublicaciones,QTY_PUBLICACIONES);
+	cli_initArray(listOfClients,QTY_CLIENTES);
+	pub_initArray(listOfPublications,QTY_PUBLICACIONES);
+	cli_hardCodeo(listOfClients);
+	pub_hardCodeo(listOfPublications);
 	do
 	{
 		if(!utn_getNumero(&opcion,"\n--MENU PRINCIPAL--\n"
@@ -40,7 +46,7 @@ int main(void) {
 			switch(opcion)
 			{
 			case 1:
-				if(!cliente_altaArray(listaDeClientes,QTY_CLIENTES))
+				if(!cliente_altaArray(listOfClients,QTY_CLIENTES))
 				{
 					printf("\n-----------------------------\n");
 				}else
@@ -51,7 +57,7 @@ int main(void) {
 				getchar();
 				break;
 			case 2:
-				if(!cliente_modificarArray(listaDeClientes,QTY_CLIENTES))
+				if(!cliente_modificarArray(listOfClients,QTY_CLIENTES))
 				{
 					printf("\n-----------------------------\n");
 				}else
@@ -62,7 +68,7 @@ int main(void) {
 				getchar();
 				break;
 			case 3:
-				if(!cliente_bajaArray(listaDeClientes,QTY_CLIENTES,listaDePublicaciones,QTY_PUBLICACIONES))
+				if(!cliente_bajaArray(listOfClients,QTY_CLIENTES,listOfPublications,QTY_PUBLICACIONES))
 				{
 					printf("\n-----------------------------\n");
 				}else
@@ -72,8 +78,9 @@ int main(void) {
 				printf("\nPresione enter para continuar...\n");
 				getchar();
 				break;
+
 			case 4:
-				if(!publicacion_altaArray(listaDePublicaciones,QTY_PUBLICACIONES,listaDeClientes,QTY_CLIENTES))
+				if(!publicacion_altaArray(listOfPublications,QTY_PUBLICACIONES,listOfClients,QTY_CLIENTES))
 				{
 					printf("\n-----------------------------\n");
 				}else
@@ -83,8 +90,8 @@ int main(void) {
 				printf("\nPresione enter para continuar...\n");
 				getchar();
 				break;
-			case 5:
-				if(!publicacion_pausarPublicacion(listaDePublicaciones,QTY_PUBLICACIONES,listaDeClientes,QTY_CLIENTES))
+				case 5:
+				if(!publicacion_pausarPublicacion(listOfPublications,QTY_PUBLICACIONES,listOfClients,QTY_CLIENTES))
 				{
 					printf("\n-----------------------------\n");
 				}else
@@ -95,7 +102,7 @@ int main(void) {
 				getchar();
 				break;
 			case 6:
-				if(!publicacion_reanudarPublicacion(listaDePublicaciones,QTY_PUBLICACIONES,listaDeClientes,QTY_CLIENTES))
+				if(!publicacion_reanudarPublicacion(listOfPublications,QTY_PUBLICACIONES,listOfClients,QTY_CLIENTES))
 				{
 					printf("\n-----------------------------\n");
 				}else
@@ -106,7 +113,7 @@ int main(void) {
 				getchar();
 				break;
 			case 7:
-				if(!cliente_imprimirArray(listaDeClientes,QTY_CLIENTES))
+				if(!cliente_imprimirArray(listOfClients,QTY_CLIENTES))
 				{
 					printf("\n-----------------------------\n");
 				}else
@@ -117,7 +124,7 @@ int main(void) {
 				getchar();
 				break;
 			case 8:
-				if(!informar_subMenu(listaDePublicaciones,QTY_PUBLICACIONES,listaDeClientes,QTY_CLIENTES))
+				if(!informar_subMenu(listOfPublications,QTY_PUBLICACIONES,listOfClients,QTY_CLIENTES))
 				{
 					printf("\n-----------------------------\n");
 				}else
@@ -136,6 +143,55 @@ int main(void) {
 		}
 	}while(opcion != 9);
 	printf("\nHasta luego!\n");
-
+	//free(listOfClients);
+	//free(listOfPublications);
 	return EXIT_SUCCESS;
+}
+
+int cli_hardCodeo(Cliente** pArray)
+{
+	int retorno = -1;
+	int bufferId[5] = {100,101,102,103,104};
+	char bufferName[5][NOMBRE_LEN] ={"Federico","Cecilia","Jardin","Santiago","Viviana"};
+	char bufferLastName[5][NOMBRE_LEN] = {"Flores","Perez","Maria","Rivera","Natulio"};
+	char bufferCuit[5][CUIT_LEN] = {"20045169384","20378374644","1234567890","273737647","27140385455"};
+	Cliente* pc;
+	if(pArray != NULL)
+	{
+		for(int i=0;i<5;i++)
+		{
+			//1)Construyo el cliente
+			pc = cli_newConParametros(bufferId[i],
+									bufferName[i],
+									bufferLastName[i],
+									bufferCuit[i]);
+			//2)Agrego el cliente al array
+			*(pArray+i) = pc;
+		}
+		retorno = 0;
+	}
+	return retorno;
+}
+
+int pub_hardCodeo(Publicacion** pArray)
+{
+	int retorno = -1;
+	int bufferId[5] = {1000,1001,1002,1003,1004};
+	int bufferRubro[5] ={99,99,56,23,55};
+	char bufferTxtArchivo [5][TXTARCHIVO_LEN] = {"Texto1","Texto2","Texto3","Texto4","Texto5"};
+	char bufferidCliente[5] = {100,100,102,100,102};
+	int bufferEstado[5] = {0,0,1,0,1};
+	Publicacion* pc;
+	if(pArray != NULL)
+	{
+		for(int i=0;i<5;i++)
+		{
+			//1)Construyo el cliente
+			pc = pub_newConParametros(bufferId[i],bufferRubro[i],bufferTxtArchivo[i],bufferidCliente[i],bufferEstado[i]);
+			//2)Agrego el cliente al array
+			*(pArray+i) = pc;
+		}
+		retorno = 0;
+	}
+	return retorno;
 }
